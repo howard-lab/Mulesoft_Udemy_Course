@@ -1,0 +1,7 @@
+http:
+  host: "localhost"
+  port: "8081"
+  path: "/env"
+  path1: "/test1"
+  
+message: "common properties file used"
