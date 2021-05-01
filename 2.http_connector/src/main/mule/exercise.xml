@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="22fb09ba-8b51-49a6-ac49-dccd7cb254e6" >
+		<http:listener-connection host="localhost" port="8083" />
+	</http:listener-config>
+	<flow name="exercise" doc:id="47e62486-57b7-4dcf-8f17-6c0458639bf4" >
+		<http:listener doc:name="Listener" doc:id="1cb3c30c-f3db-47e2-bee5-6820bcd1031b" config-ref="HTTP_Listener_config1" path="/exercise/{ID}" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d3cf9ad1-3ab5-438d-bfcc-e904773f250e" message='#["log START - " ++ flow.name]'/>
+		<set-payload value='#[%dw 2.0&#10;&#10;output application/json&#10;---&#10;{&#10;	"uriParams":attributes.uriParams,&#10;	"queryParams":attributes.queryParams&#10;}]' doc:name="Set Payload" doc:id="8f6a48e5-166d-4a27-ad7b-2aaf8e617a1b" />
+		<logger level="INFO" doc:name="Logger" doc:id="6ddfba92-6042-4fa0-97f9-3ec02f575f4a" message='#["log END - " ++ flow.name]'/>
+	</flow>
+</mule>
