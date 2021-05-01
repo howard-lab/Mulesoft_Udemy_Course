@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<flow name="publish_message_async_basic" doc:id="901ea7f6-1121-4e1c-a6dd-7dfef1a77006" >
+		<http:listener doc:name="Listener" doc:id="cc012b5b-90a9-438a-8dfc-18d964e75f44" config-ref="HTTP_Listener_config" path="/async-basic"/>
+		<logger level="INFO" doc:name="ENTRY" doc:id="6b84685f-2d0a-4d49-ba43-fe24dd91cc2e" message='"ENTRY - before punlish to queue"'/>
+		<vm:publish doc:name="Publish to Queue Async" doc:id="aa9fa1e7-dc37-4d56-9911-a665f6d6409e" config-ref="VM_Config" queueName="queue.persistent"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2fee4941-b36e-447b-9dc2-7234d931cf90" message='"EXIT - after punlish to queue"'/>
+	</flow>
+	<flow name="listener_message_async_basic" doc:id="dc8781b0-4406-45f0-940e-cd30e60640c0" >
+		<vm:listener queueName="queue.persistent" doc:name="Queue Basic Listener" doc:id="c704cc90-28f2-4c7e-b3bd-859939250419" config-ref="VM_Config"/>
+		<flow-ref doc:name='Call Flow "print_payload"' doc:id="587b12ad-27c3-4ad9-9715-789bfe718c2b" name="print_payload"/>
+	</flow>
+	<flow name="print_payload" doc:id="80ff20ff-90a9-46e7-97b6-ef3808010313" >
+		<logger level="INFO" doc:name="Logger" doc:id="0a73e6ab-868d-433f-8af5-d83262a2c8ee" message="#[payload]"/>
+	</flow>
+	<flow name="publish_message_async_dynamic_routing" doc:id="50f17755-1b1d-49cb-bcd1-f6279d000573" >
+		<http:listener doc:name="HTTP POST" doc:id="08712eec-fa48-4f0a-a65e-37f6f8acfd54" config-ref="HTTP_Listener_config" path="/dynamic-routing" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="ENTRY LOG" doc:id="66153e7c-3108-49c4-b93e-26e99b95e036" message='"ENTRY - before punlish to queue"'/>
+		<vm:publish doc:name="Publish to Queue Dynamically" doc:id="904e91a8-5445-46a8-a91f-d964062ba761" config-ref="VM_Config" queueName="#[payload.destination]"/>
+		<logger level="INFO" doc:name="EXIT LOG" doc:id="d7f2d5e4-22c3-4bad-928f-5a2e71831f23" message='"EXIT - after punlish to queue"'/>
+	</flow>
+	<flow name="listener_async_dynamic_routing_A" doc:id="07e66972-0805-4556-bd26-9349cc04a8b3" >
+		<vm:listener doc:name="Queue A Listener" doc:id="e6a967b6-983b-4e9d-88bc-90088169e3fa" config-ref="VM_Config" queueName="queueA"/>
+		<logger level="INFO" doc:name="Log A" doc:id="118b40b1-bbf2-42a3-83e1-95f3f281b52f" message='"this is queue A"'/>
+	</flow>
+	<flow name="listener_async_dynamic_routing_B" doc:id="e7770f3b-c773-4604-bc58-d33029e0e0c3" >
+		<vm:listener doc:name="Queue B Listener" doc:id="b03f124c-37f9-4fe9-9b3a-b71c6d82868e" config-ref="VM_Config" queueName="queueB"/>
+		<logger level="INFO" doc:name="Log B" doc:id="4bd5d8fa-4460-4a90-9134-3d017e1971c4" message='"this is queue B"'/>
+	</flow>
+	<flow name="publish_consume_message_sync_basic" doc:id="d3ec516b-d3eb-4697-98db-ee990852f2e2" >
+		<http:listener doc:name="HTTP POST" doc:id="41770b1e-904f-4d86-ba06-45047fec3523" config-ref="HTTP_Listener_config" path="/sync-basic"/>
+		<logger level="INFO" doc:name="ENTRY LOG" doc:id="a7af4aaa-34d0-46ad-9242-d1012f285b9a" message='"ENTRY - before punlish to queue"'/>
+		<vm:publish-consume doc:name="Publish to queue and consume response sync" doc:id="1493141c-5249-45a6-a8fa-617241b528b3" config-ref="VM_Config" queueName="queue.C" target="listenerResponse"/>
+		<logger level="INFO" doc:name="Q Response LOG" doc:id="375027d3-c988-4306-a273-3ea143addb7b" message='#[vars.listenerResponse]'/>
+		<logger level="INFO" doc:name="EXIT LOG" doc:id="f630b73c-c22e-468e-8d65-6ddb2bc0e95f" message='"EXIT - after punlish to queue"'/>
+	</flow>
+	<flow name="listener_message_sync_basic" doc:id="250cd1f8-4642-4da9-9c71-ead020902ddd" >
+		<vm:listener doc:name="Queue C Listener" doc:id="1e2f2b98-cc90-4d20-97be-8093cc8dfc6b" config-ref="VM_Config" queueName="queue.C">
+			<vm:response >
+				<vm:content ><![CDATA[#["response from Queue C listener"]]]></vm:content>
+			</vm:response>
+		</vm:listener>
+		<flow-ref doc:name='Call Flow "print_payload"' doc:id="b2276537-aac4-495b-b7cc-045001a8ef85" name="print_payload"/>
+	</flow>
+</mule>
