@@ -1,0 +1,6 @@
+{
+	"fileName": "file1",
+	"customer": { 
+		"id" :"5",
+		"name":"Dude"}
+}

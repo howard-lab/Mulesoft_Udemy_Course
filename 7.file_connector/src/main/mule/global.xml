@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="2c3694d1-d5bf-4f8d-b2a5-6e18478b50a7" >
+		<!-- 
+		<file:connection workingDir="${mule.home}/apps/${app.name}/" /> 
+		<file:connection workingDir="C:\Users\beneh\AnypointStudio\studio-workspace\mule-basics\7.file_connector\src\main\resources\files" />
+	
+		 -->
+		
+	<file:connection workingDir="${mule.home}/apps/${app.name}/" /> 
+	
+	</file:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6b2aa958-64bc-407c-b61e-268415b5dc42" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="File_Config_C_Drive" doc:name="File Config" doc:id="4de30073-5379-4486-ab09-c01febc5d92b" >
+		<file:connection workingDir="C:\DevTools\MulesoftPOC" />
+	</file:config>
+</mule>
