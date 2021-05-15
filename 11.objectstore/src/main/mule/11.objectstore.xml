@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="a43f7d06-9a9c-4a46-b913-60894cae25e8" maxEntries="10" entryTtl="60" />
+	<flow name="11.objectstoreFlow" doc:id="7e165b48-5694-45b5-aa31-b908713b1eb8" >
+		<http:listener doc:name="Listener" doc:id="804bd0ae-bc8b-428f-a605-2324973f2ed1" path="/objectStore/set" allowedMethods="POST" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="96ad011c-9da6-4b94-86e2-9e35b6c7e6ae" message='#["Entry get all"]'/>
+		<os:store doc:name="Store" doc:id="d31b9122-74b4-4665-9c88-1eca01a426b8" key="token" objectStore="Object_store"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e3a1fc15-0b91-462d-9fc7-e9e3258c8877" message='#["Exit get all"]'/>
+	</flow>
+	<flow name="11.objectstoreFlow1" doc:id="4f042af5-ff74-4d08-87e6-432864a1ddb8" >
+		<http:listener doc:name="Listener" doc:id="43b5dce7-87b3-426f-9aaf-19f5403305d1" config-ref="HTTP_Listener_config" allowedMethods="GET" path="/objectStore/retieveall"/>
+		<logger level="INFO" doc:name="Logger" doc:id="dd2d8d4c-1edf-4813-ac21-e429fd6aac0a" message='#["Entry get all"]'/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="27b82054-a229-4a63-a894-dd5b1b2ada9d" objectStore="Object_store"/>
+		<set-payload value="#[%dw 2.0&#10;&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="a40c2b59-a3f3-4dc5-8922-5c147fc91215" />
+		<logger level="INFO" doc:name="Logger" doc:id="056d266f-9e5c-49fc-9e83-5e784a51a08f" message='#["Exit get all"]'/>
+	</flow>
+</mule>

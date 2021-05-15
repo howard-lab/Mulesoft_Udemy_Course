@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <http:listener-config name="spotify-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="spotify-config" api="spotify.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="spotify-main">
+        <http:listener config-ref="spotify-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Logger" doc:id="244c70f3-1ac6-4ac4-8d63-da8788bb497f" message='#["Entry spotify main"]'/>
+		<apikit:router config-ref="spotify-config" />
+        <logger level="INFO" doc:name="Logger" doc:id="ff47d5f8-356c-4fac-ad84-bbe47caff5c3" message='#["Exit spotify main"]'/>
+		<error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="spotify-console">
+        <http:listener config-ref="spotify-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Logger" doc:id="b9f91a78-035d-460c-908f-9d9f00353a68" message='#["Entry spotify console"]'/>
+		<apikit:console config-ref="spotify-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\artist\(ID):spotify-config">
+        <logger level="INFO" doc:name="entry" doc:id="e8677832-305f-4238-b830-79d72cb766e1" message="#[&quot;Entry get an artist = &quot; ++ attributes.uriParams.'ID']" />
+		<set-variable value="#[attributes.uriParams.'ID']" doc:name="store artist ID" doc:id="0937a646-8904-4e54-8963-3538fca25906" variableName="artistID" />
+		<set-variable value="#[payload]" doc:name="store artist info" doc:id="d7b83f1b-812a-4d02-b1a2-a0901c6966df" variableName="artistObject" />
+		<vm:publish-consume queueName="artistID.toUpdate" doc:name="update artist by id (publish to queue for flow ref to consume)" doc:id="d981a289-2ea9-4d22-9626-ec5115e393bc" config-ref="VM_Config">
+			<vm:content><![CDATA[#[%dw 2.0
+
+
+output application/json
+---
+{
+	'artistID': vars.artistID,
+	'artistInfo' : vars.artistObject
+}]]]></vm:content>
+		</vm:publish-consume>
+		<logger level="INFO" doc:name="exit" doc:id="525f56a6-e521-4038-ad8c-f3f554dc12ea" message='#["Exit get all artists"]' />
+    </flow>
+    <flow name="delete:\artist\(ID):spotify-config">
+        <logger level="INFO" doc:name="entry" doc:id="c2cd20ef-621d-42a2-ac2a-2b558ecf7ec3" message="#[&quot;Entry get an artist = &quot; ++ attributes.uriParams.'ID']" />
+		<set-variable value="#[attributes.uriParams.'ID']" doc:name="store artist ID" doc:id="38607472-0d07-48d1-ada8-5d8ccd6aacb9" variableName="artistID" />
+		<vm:publish-consume queueName="artistID.toDelete" doc:name="delete artist by id (publish to queue for flow ref to consume)" doc:id="35ef3e93-b25d-4e55-bfd9-cb063b00e492" config-ref="VM_Config">
+			<vm:content><![CDATA[#[vars.artistID]]]></vm:content>
+		</vm:publish-consume>
+		<logger level="INFO" doc:name="exit" doc:id="76995c23-2fc9-4063-a557-ef63cfea39a1" message='#["Exit get all artists"]' />
+    </flow>
+    <flow name="get:\artist:spotify-config">
+		<logger level="INFO" doc:name="entry" doc:id="eb8ea4ff-8823-4afd-afa0-22320210e90d" message='#["Entry get all artists"]'/>
+		<flow-ref doc:name="Get All Artist Impl" doc:id="f1eb5c82-bfad-4308-b9eb-144413fe12b9" name="GetAllArtistSelect"/>
+		<logger level="INFO" doc:name="exit" doc:id="a6a26c69-a623-4094-a414-21162318da66" message='#["Exit get all artists"]'/>
+    </flow>
+    <flow name="get:\artist\(ID):spotify-config">
+        <logger level="INFO" doc:name="entry" doc:id="8a5b081b-7b77-47f0-a7cb-a09585ce6d38" message="#[&quot;Entry get an artist = &quot; ++ attributes.uriParams.'ID']" />
+		<set-variable value="#[attributes.uriParams.'ID']" doc:name="store artist ID" doc:id="5d75294b-568e-4102-b496-cc31d5a74e9a" variableName="artistID"/>
+		<vm:publish-consume queueName="artistID.toGet" doc:name="get artist by id (publish to queue for flow ref to consume)" doc:id="219813b0-61ae-41bf-a9cc-07cbc0d3ab69" config-ref="VM_Config">
+			<vm:content ><![CDATA[#[vars.artistID]]]></vm:content>
+		</vm:publish-consume>
+		<logger level="INFO" doc:name="exit" doc:id="baf1b056-abd5-48e3-b9fe-b9b29a54740d" message='#["Exit get an artist = " ++ vars.artistID]' />
+    </flow>
+    <flow name="post:\artist:application\json:spotify-config">
+        <logger level="INFO" doc:name="entry" doc:id="25858fbf-fd8f-4733-b1d7-772157c58d65" message='#["Entry get an artist = "]' />
+		<set-variable value="#[payload]" doc:name="store artist info" doc:id="9ec40e53-e838-43cd-ae2d-a365c46fcabf" variableName="artistObject"/>
+		<vm:publish-consume doc:name="Sync Create new artist" doc:id="2594999b-1b63-403b-86e0-f74f620a5b6b" config-ref="VM_Config" queueName="artistInfo.toPost">
+			<vm:content ><![CDATA[#[vars.artistObject]]]></vm:content>
+		</vm:publish-consume>
+		<logger level="INFO" doc:name="Copy_of_exit" doc:id="bb60aaf9-4227-4153-afa3-cba0640e1c34" message='#[vars.artistObject]' />
+		<logger level="INFO" doc:name="exit" doc:id="0a62e05f-a767-4d8f-abaa-2639b4efef7e" message='#["Exit get an artist = "]' />
+    </flow>
+</mule>

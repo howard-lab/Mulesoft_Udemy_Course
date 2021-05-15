@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<flow name="GetAllArtistSelect" doc:id="8dca1247-1559-48eb-92ec-8c6d2ffbf3a0" >
+		<db:select doc:name="Get All Artists" doc:id="2487609e-c975-4a00-93f2-26db1987f41b" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from artists]]></db:sql>
+		</db:select>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="d00f7433-adcc-45f9-b3e7-620153e9507a" />
+	</flow>
+	<flow name="getArtistById" doc:id="022d5eac-c7e1-4920-b7d1-014352e71c07" >
+		<vm:listener queueName="artistID.toGet" doc:name="Listener" doc:id="9058994f-3d44-4ce5-bb31-33c19f37112e" config-ref="VM_Config"/>
+		<db:select doc:name="Select" doc:id="3d523358-4963-4734-9e38-78967a1f469f" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from artists where id = :artistID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'artistID': payload
+}]]]></db:input-parameters>
+		</db:select>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="d189bc59-81f1-4038-97ba-f20bd715cd7d" />
+	</flow>
+	<flow name="CreateNewArtist" doc:id="03e071c8-79fb-4f43-addc-91f8aa648cd2" >
+		<vm:listener queueName="artistInfo.toPost" doc:name="Listener" doc:id="0e3442ca-813f-4d8c-8bee-befc7f6bac47" config-ref="VM_Config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="38f555a0-17b2-4d39-8a12-def3f1e4aa20" message='#["Enter post artist"]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="0350cf78-fe85-40b6-8480-5448d6a7527f" message='#[payload]'/>
+		<db:insert doc:name="Insert" doc:id="510ed004-6649-4dc1-9829-43e0c8725313" config-ref="Database_Config" autoGenerateKeys="true">
+			<db:sql ><![CDATA[insert into artists (name,genre) values(:artistName, :artistGenre)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'artistName' : payload.artistName,
+	'artistGenre' : payload.genre
+}]]]></db:input-parameters>
+		</db:insert>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="a4d35162-c054-425b-9b7c-08a1cf961955" />
+		<logger level="INFO" doc:name="Logger" doc:id="032b9d16-d35a-497f-b4ee-c8dd4b99a09a" message='#["Exit post artist"]'/>
+	</flow>
+	<flow name="DeleteArtist" doc:id="dccabaa8-c5a4-42c0-a220-8e6888c11d82" >
+		<vm:listener doc:name="Listener" doc:id="9dfe3082-3ff0-440d-9fbd-3bf14766ad66" config-ref="VM_Config" queueName="artistID.toDelete"/>
+		<logger level="INFO" doc:name="Logger" doc:id="99f8aaf4-b63a-4970-a6e3-3826d33c16e6" message='#["Enter delete artist"]' />
+		<logger level="INFO" doc:name="Logger" doc:id="c4fc654e-2150-4bda-9984-6d9d0fa49f49" message="#[payload]" />
+		<db:delete doc:name="Delete" doc:id="f28722f6-25b4-4ba7-a7bd-8fa2e888a464" config-ref="Database_Config">
+			<db:sql ><![CDATA[delete from artists where id = :artistID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'artistID' : payload
+}]]]></db:input-parameters>
+		</db:delete>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Copy_of_Set Payload" doc:id="11cdfe80-b047-42ec-ba87-baa7f6e19cb2" />
+		<logger level="INFO" doc:name="Logger" doc:id="8614b899-3292-47b2-ae39-fd35c062f248" message='#["Exit delete artist"]' />
+	</flow>
+	<flow name="UpdateArtist" doc:id="287d1ab3-abc1-4a2d-874b-43e30901fdbc" >
+		<vm:listener doc:name="Listener" doc:id="4bd41df3-5a70-4e73-a2be-fa2d4d57d477" config-ref="VM_Config" queueName="artistID.toUpdate"/>
+		<logger level="INFO" doc:name="Logger" doc:id="310c558e-a005-4704-a841-0cee4da40d92" message='#["Enter update artist"]' />
+		<logger level="INFO" doc:name="Copy_of_Logger" doc:id="5db14053-49b7-4b40-bd24-54b694d092f7" message="#[payload]" />
+		<db:update doc:name="Update" doc:id="171d48c7-6c48-4bd0-8135-74e964efc0f2" config-ref="Database_Config">
+			<db:sql ><![CDATA[update artists set name =:artistName, genre=:artistGenre where id = :artistID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'artistName' : payload.artistInfo.artistName,
+	'artistGenre' : payload.artistInfo.genre,
+	'artistID' : payload.artistID
+}]]]></db:input-parameters>
+		</db:update>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Copy_of_Set Payload" doc:id="88ee00e1-3a5f-4ec7-b5df-c430fd9a97a7" />
+		<logger level="INFO" doc:name="Logger" doc:id="7ac3c93f-6619-4edd-ab10-a18cf7baa98e" message='#["Exit update artist"]' />
+	</flow>
+</mule>
